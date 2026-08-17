@@ -80,10 +80,38 @@ from the old site.
 
 ## Deploying
 
-GitHub Pages serves this repository. `CNAME` pins the custom domain.
+Repository: `TheEUAppSolutions/euappsolutions.com`. GitHub Pages serves it directly —
+there is no build step on their side, so whatever is committed is what ships.
 
-1. Push to the branch Pages is configured to serve.
-2. Pages rebuilds automatically; there is no build step on their side.
+Two branches, because the domain hasn't moved yet:
+
+| Branch | Built with | Serves | Purpose |
+| --- | --- | --- | --- |
+| `main` | `./build.sh` (root paths, has `CNAME`) | `euappsolutions.com` | the real site, **after** the DNS cutover |
+| `preview` | `python3 src/build.py --base /euappsolutions.com`, no `CNAME` | [theeuappsolutions.github.io/euappsolutions.com](https://theeuappsolutions.github.io/euappsolutions.com/) | reviewable today |
+
+Pages currently points at `preview`. A `CNAME` file makes Pages serve *only* the custom
+domain and redirect the `github.io` URL to it — which would be a dead end until DNS
+moves, hence the split. `preview` also carries a `Disallow: /` robots.txt so the staging
+copy stays out of search; the canonical tags already point at the real domain.
+
+### Updating the preview
+
+```bash
+git checkout preview && git merge main
+python3 src/build.py --base /euappsolutions.com
+rm -f CNAME && printf 'User-agent: *\nDisallow: /\n' > robots.txt
+git commit -am "Refresh preview" && git push
+```
+
+### Cutover, once DNS is pointed
+
+1. Confirm the A records below resolve: `dig +short euappsolutions.com`
+2. Point Pages at `main`:
+   `gh api -X PUT repos/TheEUAppSolutions/euappsolutions.com/pages -f 'source[branch]=main' -f 'source[path]=/'`
+3. Check `https://euappsolutions.com/privacy-policy-looksmax/` returns 200 — App Store
+   listings cite it.
+4. Delete the old WordPress site only after that passes.
 
 **DNS is the one piece that isn't in this repo.** `euappsolutions.com` is on Google
 nameservers in an account that isn't reachable from the usual dev login, so the
@@ -98,10 +126,3 @@ CNAME www                  <org>.github.io.
 ```
 
 `dashboard.euappsolutions.com` is a separate Cloud Run mapping and is unaffected.
-
-To preview on a `github.io` project URL before the domain moves, build with a base
-path so the asset links resolve:
-
-```bash
-python3 src/build.py --base /euappsolutions.com
-```
