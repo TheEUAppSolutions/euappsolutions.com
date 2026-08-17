@@ -54,20 +54,28 @@ def main():
         rel = page.relative_to(ROOT)
         doc = page.read_text(encoding="utf-8")
 
+        canonical = re.search(r'<link rel="canonical" href="(https://[^"]+)"', doc)
+        if not canonical:
+            note(rel, "missing canonical URL")
+
+        # A page whose canonical points at a different URL is a deliberate alias
+        # (the paths WordPress served as 301s). Duplicate title/description is the
+        # correct outcome there, so only compare pages that are canonical to themselves.
+        own_url = f"{SITE}/{rel.parent.as_posix().strip('.').strip('/')}"
+        own_url = (own_url.rstrip("/") + "/") if rel.name == "index.html" else None
+        is_alias = bool(canonical and own_url and canonical.group(1) != own_url)
+
         title = re.search(r"<title>(.*?)</title>", doc, re.S)
         if not title or not title.group(1).strip():
             note(rel, "missing <title>")
-        else:
+        elif not is_alias:
             titles.setdefault(title.group(1), []).append(str(rel))
 
         desc = re.search(r'<meta name="description" content="(.*?)"', doc)
         if not desc or len(desc.group(1)) < 40:
             note(rel, "missing or very short meta description")
-        else:
+        elif not is_alias:
             descriptions.setdefault(desc.group(1), []).append(str(rel))
-
-        if not re.search(r'<link rel="canonical" href="https://', doc):
-            note(rel, "missing canonical URL")
 
         if re.search(r"\s--\s", re.sub(r"(?is)<(script|style).*?</\1>", "", doc)):
             note(rel, "ASCII '--' placeholder left in visible copy")
@@ -119,6 +127,12 @@ def main():
             problems.append(f"no icon for {app['slug']}")
         if f"{SITE}/apps/{app['slug']}/" not in sitemap:
             problems.append(f"{app['slug']} missing from sitemap")
+
+    # URLs cited from live App Store listings — these must never 404
+    for path in ("privacy-policy", "terms-of-use", "privacy-policy-looksmax",
+                 "terms-of-use-wristtube", "term-of-use"):
+        if not (ROOT / path / "index.html").exists():
+            problems.append(f"legal URL /{path}/ is missing — App Store listings cite it")
 
     required = [".nojekyll", "robots.txt", "404.html"]
     if not BASE:
