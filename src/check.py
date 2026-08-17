@@ -13,6 +13,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SITE = "https://euappsolutions.com"
 
+# must match the --base the site was built with, so hrefs resolve back to disk
+BASE = ""
+if "--base" in sys.argv:
+    BASE = "/" + sys.argv[sys.argv.index("--base") + 1].strip("/")
+
 problems = []
 
 
@@ -25,6 +30,10 @@ def resolve(href):
     path = href.split("#")[0].split("?")[0]
     if not path.startswith("/"):
         return None
+    if BASE:
+        if not path.startswith(BASE + "/") and path != BASE:
+            return None
+        path = path[len(BASE):] or "/"
     target = ROOT / path.lstrip("/")
     if path.endswith("/") or not target.suffix:
         return (ROOT / path.strip("/") / "index.html") if path.strip("/") else ROOT / "index.html"
@@ -111,9 +120,13 @@ def main():
         if f"{SITE}/apps/{app['slug']}/" not in sitemap:
             problems.append(f"{app['slug']} missing from sitemap")
 
-    for required in ("CNAME", ".nojekyll", "robots.txt", "404.html"):
-        if not (ROOT / required).exists():
-            problems.append(f"missing {required}")
+    required = [".nojekyll", "robots.txt", "404.html"]
+    if not BASE:
+        # a --base build is a github.io preview; the custom domain only applies at the root
+        required.append("CNAME")
+    for name in required:
+        if not (ROOT / name).exists():
+            problems.append(f"missing {name}")
 
     print(f"checked {len(pages)} pages, {len(apps)} apps")
     if problems:
