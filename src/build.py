@@ -353,7 +353,7 @@ ratings between them and a {totals['avg']:.1f} average. Utilities, audio tools, 
 the odd thing that just exists to be calming.</p>
 <div class="btn-row">
 <a class="btn btn--primary" href="{url('apps')}">Browse the apps {icon('arrow')}</a>
-<a class="btn btn--ghost" href="{SUBSCRIPTIONS}" rel="noopener">Manage subscriptions</a>
+<a class="btn btn--ghost" href="{url('contact')}">Get in touch</a>
 </div>
 <div class="stats">
 <div class="stat"><span class="stat__num">{totals['count']}</span>
@@ -460,12 +460,11 @@ optional subscriptions where an app has running costs behind it.</p>
 <div class="wrap">
 <div class="callout">
 <div class="callout__text">
-<h2>Already subscribed to one of these?</h2>
-<p>Manage or cancel a subscription through the portal, or write to us and we'll sort it.</p>
+<h2>Need help with one of these?</h2>
+<p>Tell us which app you're writing about and we'll get to it faster.</p>
 </div>
 <div class="btn-row">
-<a class="btn btn--primary" href="{SUBSCRIPTIONS}" rel="noopener">Manage subscriptions</a>
-<a class="btn btn--ghost" href="mailto:{EMAIL}">Email support</a>
+<a class="btn btn--primary" href="mailto:{EMAIL}">Email support</a>
 </div>
 </div>
 </div>
