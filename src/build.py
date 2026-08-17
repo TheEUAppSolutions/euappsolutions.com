@@ -165,8 +165,11 @@ document.documentElement.setAttribute('data-theme',t);}}catch(e){{}}
 
 def masthead(current):
     links = [("Apps", "apps"), ("About", "about"), ("Contact", "contact")]
+    # built with .format rather than an f-string: a backslash inside an f-string
+    # expression is a syntax error before Python 3.12, and macOS ships 3.9
     nav = "".join(
-        f'<a href="{url(slug)}"{" aria-current=\"page\"" if current == slug else ""}>{label}</a>'
+        '<a href="{}"{}>{}</a>'.format(
+            url(slug), ' aria-current="page"' if current == slug else "", label)
         for label, slug in links
     )
     return f"""<header class="masthead">

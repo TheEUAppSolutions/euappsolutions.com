@@ -9,6 +9,13 @@ cd "$(dirname "$0")"
 
 eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
 
+# The scripts target 3.9 so they run on stock macOS python3 as well as brew's. Whichever
+# one is first on PATH must work, so fail loudly here rather than half-way through a build.
+python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' || {
+  echo "python3 is $(python3 -V 2>&1); this build needs 3.9 or newer" >&2
+  exit 1
+}
+
 if [[ "${1:-}" == "--offline" ]]; then
   echo "==> using committed app data (offline)"
 else
