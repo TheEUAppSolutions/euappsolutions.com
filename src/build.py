@@ -39,6 +39,16 @@ RETIRED = {
                            "This app is no longer available on the App Store."),
 }
 
+# On WordPress these two were 301s, so they never appeared in the sitemap -- but six live
+# App Store listings cite them (Radio FM, Watch Faces Gallery, HDMI Monitor, XRay Anatomy,
+# TalkBook, Finger Picker). Pages cannot issue redirects, so serve the same text at both
+# paths and let rel=canonical point at the primary one.
+#   alias path -> slug whose content and canonical URL it borrows
+LEGAL_ALIASES = {
+    "privacy-policy": "privacy-policy-looksmax",
+    "terms-of-use": "terms-of-use-wristtube",
+}
+
 GROUPS = ["Utilities", "Photo & Video", "Audio", "Lifestyle", "Reading", "Productivity"]
 
 pages_built = []
@@ -112,7 +122,10 @@ def mark():
 
 # --- chrome ------------------------------------------------------------------
 
-def head(title, description, path, *, image=None, jsonld=None, noindex=False):
+def head(title, description, path, *, image=None, jsonld=None, noindex=False,
+         canonical_path=None):
+    # canonical_path lets an alias page point at the URL it duplicates
+    path = canonical_path if canonical_path is not None else path
     canonical = SITE + url(path).replace(BASE, "", 1) if BASE else SITE + url(path)
     image = image or (SITE + asset("img/og.png").replace(BASE, "", 1) if BASE
                       else SITE + asset("img/og.png"))
@@ -678,11 +691,13 @@ projects. Tell us which app you're writing about and we'll get to it faster.</p>
 """ + footer(apps)
 
 
-def page_legal(slug, title, body, apps, *, extra=""):
+def page_legal(slug, title, body, apps, *, extra="", canonical_path=None):
     return head(
         f"{title} — {COMPANY}",
-        f"{title} for {COMPANY_LEGAL}.",
+        f"{title} for {COMPANY_LEGAL}. "
+        f"{COMPANY_LEGAL}, {', '.join(ADDRESS)}.",
         slug,
+        canonical_path=canonical_path,
     ) + masthead("") + f"""
 <section class="section section--tight">
 <div class="wrap">
@@ -780,6 +795,13 @@ def main():
         # the source page ended in a contact form; give the reader real details instead
         extra = contact_block if slug == "privacy-policy-looksmax" else ""
         write(slug, page_legal(slug, title, body, apps, extra=extra))
+
+    # the two paths WordPress served as 301s, reproduced as real pages
+    for alias, target in LEGAL_ALIASES.items():
+        body = (SRC / "legal" / f"{target}.html").read_text()
+        extra = contact_block if target == "privacy-policy-looksmax" else ""
+        write(alias, page_legal(alias, legal_titles[target], body, apps,
+                                extra=extra, canonical_path=target))
 
     for slug, (title, message) in RETIRED.items():
         write(slug, page_retired(slug, title, message, apps))
