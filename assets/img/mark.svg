@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="European Apps Solutions">
+  <defs>
+    <linearGradient id="eas-mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B5BDB"/>
+      <stop offset="1" stop-color="#1B2F9E"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8.5" fill="url(#eas-mark)"/>
+  <path d="M9.5 11.5h13M9.5 16h9.5M9.5 20.5h6" stroke="#fff" stroke-width="2.75" stroke-linecap="round"/>
+</svg>
