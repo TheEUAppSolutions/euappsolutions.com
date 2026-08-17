@@ -1,4 +1,2 @@
 User-agent: *
-Allow: /
-
-Sitemap: https://euappsolutions.com/sitemap.xml
+Disallow: /
