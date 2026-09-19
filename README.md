@@ -104,25 +104,53 @@ rm -f CNAME && printf 'User-agent: *\nDisallow: /\n' > robots.txt
 git commit -am "Refresh preview" && git push
 ```
 
-### Cutover, once DNS is pointed
+### Cutover
 
-1. Confirm the A records below resolve: `dig +short euappsolutions.com`
-2. Point Pages at `main`:
-   `gh api -X PUT repos/TheEUAppSolutions/euappsolutions.com/pages -f 'source[branch]=main' -f 'source[path]=/'`
-3. Check `https://euappsolutions.com/privacy-policy-looksmax/` returns 200 — App Store
-   listings cite it.
-4. Delete the old WordPress site only after that passes.
+The domain is registered with **Squarespace Domains** (migrated from Google Domains —
+that's why the nameservers are still `ns-cloud-d*.googledomains.com`). Edit records in
+Squarespace; the Google nameservers are Squarespace's, not a separate Cloud DNS zone.
 
-**DNS is the one piece that isn't in this repo.** `euappsolutions.com` is on Google
-nameservers in an account that isn't reachable from the usual dev login, so the
-cutover needs whoever holds that zone. The records Pages needs:
+Order matters. Claim the domain on GitHub **first**, then move DNS — the other way round
+leaves a window where the domain points at GitHub with no site claiming it.
 
-```
-A     euappsolutions.com   185.199.108.153
-A     euappsolutions.com   185.199.109.153
-A     euappsolutions.com   185.199.110.153
-A     euappsolutions.com   185.199.111.153
-CNAME www                  <org>.github.io.
-```
+1. **GitHub — point Pages at `main`.** Repo → Settings → Pages → Branch `main`, `/ (root)`.
+   The `CNAME` file sets the custom domain. The `github.io` preview URL starts redirecting
+   to euappsolutions.com at this point, which is still WordPress until step 3.
+2. **GitHub — verify the domain for the org** (recommended). Org settings → Pages → Add a
+   domain. Stops anyone else claiming euappsolutions.com on their own Pages site if this
+   one is ever unpublished while DNS still points at GitHub.
+3. **Squarespace — change DNS** (records below).
+4. **Wait** for `dig +short euappsolutions.com` to return the GitHub IPs, then for GitHub
+   to issue the certificate (Settings → Pages shows it). Tick **Enforce HTTPS**.
+5. **Check** `https://euappsolutions.com/privacy-policy-looksmax/` and
+   `https://euappsolutions.com/privacy-policy/` return 200 — App Store listings cite both.
+6. Cancel the old WordPress hosting (Unified Layer / Bluehost) only after that passes.
 
-`dashboard.euappsolutions.com` is a separate Cloud Run mapping and is unaffected.
+### DNS records
+
+Change only these. Everything else in the zone stays as it is.
+
+| Action | Host | Type | Value |
+| --- | --- | --- | --- |
+| **Delete** | `@` | A | `162.241.253.192` (old WordPress host) |
+| Add | `@` | A | `185.199.108.153` |
+| Add | `@` | A | `185.199.109.153` |
+| Add | `@` | A | `185.199.110.153` |
+| Add | `@` | A | `185.199.111.153` |
+| Add | `@` | AAAA | `2606:50c0:8000::153` |
+| Add | `@` | AAAA | `2606:50c0:8001::153` |
+| Add | `@` | AAAA | `2606:50c0:8002::153` |
+| Add | `@` | AAAA | `2606:50c0:8003::153` |
+| **Edit** | `www` | CNAME | `euappsolutions.com` → `theeuappsolutions.github.io` |
+
+**Do not touch:** the five `MX` records (`aspmx.l.google.com` etc. — Google Workspace
+email for info@), the `TXT` SPF record, and `dashboard` → `ghs.googlehosted.com`
+(the Cloud Run project dashboard). There is no `CAA` record, so nothing blocks GitHub's
+Let's Encrypt certificate.
+
+`www` is not optional: Radio FM and Manga Reader Plus give `www.euappsolutions.com` as
+their App Store seller URL. GitHub redirects `www` to the apex once both resolve.
+
+The existing records have a 4-hour TTL, so resolvers switch over gradually during that
+window — visitors keep getting WordPress until theirs updates, so there's no outage. A
+rollback takes just as long, so do the GitHub steps first rather than experimenting live.
