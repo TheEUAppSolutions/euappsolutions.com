@@ -2,4 +2,3 @@ User-agent: *
 Allow: /
 
 Sitemap: https://euappsolutions.com/sitemap.xml
-Sitemap: https://euappsolutions.com/bonapp/sitemap.xml
