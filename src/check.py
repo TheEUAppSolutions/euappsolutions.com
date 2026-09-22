@@ -41,7 +41,10 @@ def resolve(href):
 
 
 def main():
-    pages = sorted(p for p in ROOT.rglob("*.html") if "src" not in p.parts)
+    # bonapp/ is Bon App & T's site, generated and checked from its own repo
+    # (TheEUAppSolutions/bonapp-website) -- its App Store links and titles are not ours
+    pages = sorted(p for p in ROOT.rglob("*.html")
+                   if p.relative_to(ROOT).parts[0] not in ("src", "bonapp"))
     if not pages:
         print("no pages found — run build.py first")
         return 1

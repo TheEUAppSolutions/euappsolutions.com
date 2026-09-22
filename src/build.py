@@ -213,6 +213,7 @@ def footer(apps):
 <li><a href="{url('contact')}">Contact</a></li>
 <li><a href="mailto:{EMAIL}">{EMAIL}</a></li>
 <li><a href="{TIKTOK}" rel="noopener">TikTok</a></li>
+<li><a href="{url('bonapp')}">Also from us: Bon App &amp; T</a></li>
 </ul>
 </div>
 <div class="footer__col">
@@ -824,7 +825,8 @@ def main():
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           f"{entries}\n</urlset>\n")
 
-    write("robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n")
+    write("robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n"
+          f"Sitemap: {SITE}/bonapp/sitemap.xml\n")
 
     (ROOT / "CNAME").write_text("euappsolutions.com\n")
     (ROOT / ".nojekyll").write_text("")
