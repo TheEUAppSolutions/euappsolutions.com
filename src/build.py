@@ -24,8 +24,6 @@ ADDRESS = ["71-75 Shelton Street", "Covent Garden", "London WC2H 9JQ", "United K
 TIKTOK = "https://www.tiktok.com/@musica.ai.app"
 # the subscription portal the current site links to (tracking parameters stripped)
 SUBSCRIPTIONS = "https://eu-apps-solution.web2wave.com/manga-manage-subscription"
-# sister company, its own site; /bonapp/ here is kept as redirect stubs to it
-BONAPP = "https://bon-app.net"
 
 BASE = ""
 
@@ -215,7 +213,6 @@ def footer(apps):
 <li><a href="{url('contact')}">Contact</a></li>
 <li><a href="mailto:{EMAIL}">{EMAIL}</a></li>
 <li><a href="{TIKTOK}" rel="noopener">TikTok</a></li>
-<li><a href="{BONAPP}" rel="noopener">Also from us: Bon App &amp; T</a></li>
 </ul>
 </div>
 <div class="footer__col">
