@@ -785,6 +785,9 @@ def main():
 
     legal_titles = {
         "privacy-policy-looksmax": "Privacy Policy",
+        # Time Warp Scan has its own: one policy cannot honestly describe both an app
+        # that only draws filters on device and one that analyses faces.
+        "privacy-policy-timewarp": "Privacy Policy (Time Warp Scan)",
         "terms-of-use-wristtube": "Terms of Use (WristTube)",
         "term-of-use": "Terms of Use",
     }
@@ -795,7 +798,7 @@ def main():
     for slug, title in legal_titles.items():
         body = (SRC / "legal" / f"{slug}.html").read_text()
         # the source page ended in a contact form; give the reader real details instead
-        extra = contact_block if slug == "privacy-policy-looksmax" else ""
+        extra = contact_block if slug.startswith("privacy-policy") else ""
         write(slug, page_legal(slug, title, body, apps, extra=extra))
 
     # the two paths WordPress served as 301s, reproduced as real pages
